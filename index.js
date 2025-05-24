@@ -1,14 +1,21 @@
 require("dotenv").config();
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
 // middleware
-app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.oo75q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -34,7 +41,12 @@ async function run() {
       const token = jwt.sign(user, process.env.JWT_ACCESS_TOKEN, {
         expiresIn: "1h",
       });
-      res.send({ token });
+      res
+        .cookie("token", token, {
+          httpOnly: true, 
+          secure: true, 
+        })
+        .send({ success: true });
     });
 
     await client.db("admin").command({ ping: 1 });
