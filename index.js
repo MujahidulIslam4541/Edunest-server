@@ -53,7 +53,6 @@ async function run() {
     // User related api
     app.post("/users", async (req, res) => {
       const user = req.body;
-
       // check if existing user
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
@@ -64,6 +63,13 @@ async function run() {
       res.send(result);
     });
 
+
+    // get all users
+    app.get('/users',async (req,res)=>{
+      const result =await userCollection.find().toArray()
+      res.send(result)
+    })
+
     // Added course in database
     app.post("/course", async (req, res) => {
       const course = req.body;
@@ -72,11 +78,18 @@ async function run() {
     });
 
     // get courses in database
-    app.get('/courses',async(req,res)=>{
-      const result= await courseCollection.find().toArray()
-      res.send(result)
-    })
+    app.get("/courses", async (req, res) => {
+      const result = await courseCollection.find().toArray();
+      res.send(result);
+    });
 
+    // a single course find
+    app.get("/courses/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await courseCollection.findOne(query);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
