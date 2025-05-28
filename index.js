@@ -17,7 +17,7 @@ app.use(
   })
 );
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.oo75q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -34,6 +34,7 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
     const userCollection = client.db("EduNestDb").collection("users");
+    const courseCollection = client.db("EduNestDb").collection("courses");
 
     // Jwt related api
     app.post("/jwt", async (req, res) => {
@@ -62,6 +63,20 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+
+    // Added course in database
+    app.post("/course", async (req, res) => {
+      const course = req.body;
+      const result = await courseCollection.insertOne(course);
+      res.send(result);
+    });
+
+    // get courses in database
+    app.get('/courses',async(req,res)=>{
+      const result= await courseCollection.find().toArray()
+      res.send(result)
+    })
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
