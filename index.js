@@ -19,7 +19,6 @@ app.use(
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.oo75q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -34,6 +33,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
+    const userCollection = client.db("EduNestDb").collection("users");
 
     // Jwt related api
     app.post("/jwt", async (req, res) => {
@@ -43,10 +43,24 @@ async function run() {
       });
       res
         .cookie("token", token, {
-          httpOnly: true, 
-          secure: true, 
+          httpOnly: true,
+          secure: true,
         })
         .send({ success: true });
+    });
+
+    // User related api
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+
+      // check if existing user
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "User Already Exists", insertedId: null });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
