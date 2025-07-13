@@ -1,6 +1,6 @@
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 
@@ -45,10 +45,17 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: true,
+          secure: false,
         })
         .send({ success: true });
     });
+
+    // jwt verify token
+    const verifyToken = (req, res, next) => {
+      const token = req.cookies.token;
+      console.log("Cookies from request:", token);
+      next();
+    };
 
     // User related api
     app.post("/users", async (req, res) => {
@@ -64,7 +71,7 @@ async function run() {
     });
 
     // get all users
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
